@@ -1,0 +1,1 @@
+{"level":"fatal","ts":"2024-08-04T22:29:09.245+0330","caller":"cmd/main.go:21","msg":"dial tcp 127.0.0.1:6379: connect: connection refused","AppName":"MyApp","LoggerName":"Zaplog","Category":"Redis","SubCategory":"Startup","stacktrace":"main.main\n\t/home/pc/Desktop/go/src/web-api/src/cmd/main.go:21\nruntime.main\n\t/usr/local/go/src/runtime/proc.go:271"}

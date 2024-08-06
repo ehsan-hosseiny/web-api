@@ -1,0 +1,6 @@
+{"level":"info","ts":"2024-08-02T19:43:08.799+0330","caller":"db/postgres.go:37","msg":"Db connection established","Category":"Postgres","SubCategory":"Startup"}
+{"level":"info","ts":"2024-08-02T19:43:18.444+0330","caller":"db/postgres.go:37","msg":"Db connection established","SubCategory":"Startup","Category":"Postgres"}
+{"level":"fatal","ts":"2024-08-03T22:53:24.416+0330","caller":"cmd/main.go:21","msg":"dial tcp 127.0.0.1:6379: connect: connection refused","SubCategory":"Startup","Category":"Redis","stacktrace":"main.main\n\t/home/pc/Desktop/go/src/web-api/src/cmd/main.go:21\nruntime.main\n\t/usr/local/go/src/runtime/proc.go:271"}
+{"level":"info","ts":"2024-08-03T22:53:44.390+0330","caller":"db/postgres.go:37","msg":"Db connection established","Category":"Postgres","SubCategory":"Startup"}
+{"level":"info","ts":"2024-08-04T20:12:03.706+0330","caller":"db/postgres.go:37","msg":"Db connection established","Category":"Postgres","SubCategory":"Startup"}
+{"level":"info","ts":"2024-08-04T20:20:43.547+0330","caller":"db/postgres.go:37","msg":"Db connection established","Category":"Postgres","SubCategory":"Startup"}
