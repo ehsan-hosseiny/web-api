@@ -16,23 +16,45 @@ func InitServer(cfg *config.Config) {
 	r := gin.New()
 
 	RegisterSwagger(r, cfg)
+	RegisterRoutes(r, cfg)
 
 	r.Use(gin.Logger(), gin.Recovery())
 	r.Use(middlewares.DefaultStructuredLogger(cfg))
 	r.Use(middlewares.Cors(cfg))
 
+	// api := r.Group("/api")
+
+	// v1 := api.Group("/v1/")
+	// {
+	// 	health := v1.Group("/health", middlewares.LimitByRequest())
+	// 	test_router := v1.Group("/test")
+
+	// 	users := v1.Group("/users", middlewares.LimitByRequest())
+
+	// 	routers.Health(health)
+	// 	routers.TestRouter(test_router)
+	// 	routers.User(users, cfg)
+	// }
+
+	r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
+}
+
+func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 	api := r.Group("/api")
 
-	v1 := api.Group("/v1/")
+	v1 := api.Group("/v1")
 	{
-		health := v1.Group("/health", middlewares.LimitByRequest())
+		// Test
+		health := v1.Group("/health")
 		test_router := v1.Group("/test")
+		users := v1.Group("/users")
 
 		routers.Health(health)
 		routers.TestRouter(test_router)
+		routers.User(users, cfg)
+
 	}
 
-	r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 }
 
 func RegisterSwagger(r *gin.Engine, cfg *config.Config) {

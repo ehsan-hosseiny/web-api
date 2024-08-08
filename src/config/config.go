@@ -16,6 +16,7 @@ type Config struct {
 	Cors     CorsConfig
 	Logger   LoggerConfig
 	Redis    RedisConfig
+	Otp      OtpConfig
 }
 
 type ServerConfig struct {
@@ -66,6 +67,12 @@ type PasswordConfig struct {
 
 type CorsConfig struct {
 	AllowOrigins string
+}
+
+type OtpConfig struct {
+	ExpireTime time.Duration
+	Digits     int
+	Limitter   time.Duration
 }
 
 func GetConfig() *Config {
