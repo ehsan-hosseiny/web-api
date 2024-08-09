@@ -17,6 +17,7 @@ type Config struct {
 	Logger   LoggerConfig
 	Redis    RedisConfig
 	Otp      OtpConfig
+	JWT      JWTConfig
 }
 
 type ServerConfig struct {
@@ -73,6 +74,13 @@ type OtpConfig struct {
 	ExpireTime time.Duration
 	Digits     int
 	Limitter   time.Duration
+}
+
+type JWTConfig struct {
+	Secret                         string
+	RefreshSecret                  string
+	AccessTokenExpireTimeDuration  time.Duration
+	RefreshTokenExpireTimeDuration time.Duration
 }
 
 func GetConfig() *Config {
