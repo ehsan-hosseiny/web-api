@@ -18,7 +18,7 @@ type RegisterUserByUsername struct {
 	Password  string `json:"password" binding:"required,,password,min=3"`
 }
 
-type RegisterLoginByMobile struct {
+type RegisterLoginByMobileRequest struct {
 	MobileNumber string `json:"mobileNumber" binding:"required,mobile,min=11,max=11"`
 	Otp          string `json:"otp" binding:"required,min=6,max=6"`
 }
