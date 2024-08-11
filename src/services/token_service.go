@@ -34,7 +34,7 @@ func NewTokenService(cfg *config.Config) *TokenService {
 	}
 }
 
-func (s *TokenService) GenerateToken(token tokenDto) (*dto.TokenDetail, error) {
+func (s *TokenService) GenerateToken(token *tokenDto) (*dto.TokenDetail, error) {
 	td := &dto.TokenDetail{}
 	td.AccessTokenExpireTime = time.Now().Add(s.cfg.JWT.AccessTokenExpireTimeDuration * time.Minute).Unix()
 	td.RefreshTokenExpireTime = time.Now().Add(s.cfg.JWT.RefreshTokenExpireTimeDuration * time.Minute).Unix()
