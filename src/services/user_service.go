@@ -32,7 +32,7 @@ func NewUserService(cfg *config.Config) *UserSevice {
 	}
 }
 
-func (s *UserSevice) RegisterByUsername(req dto.RegisterUserByUsername) error {
+func (s *UserSevice) RegisterByUsername(req *dto.RegisterUserByUsername) error {
 	u := models.User{Username: req.Username, FirstName: req.FirstName, LastName: req.LastName,
 		Email: req.Email}
 
@@ -84,7 +84,7 @@ func (s *UserSevice) RegisterByUsername(req dto.RegisterUserByUsername) error {
 
 }
 
-func (s *UserSevice) LoginByUserName(req dto.LoginByUsernameRequest) (*dto.TokenDetail, error) {
+func (s *UserSevice) LoginByUserName(req *dto.LoginByUsernameRequest) (*dto.TokenDetail, error) {
 	var user models.User
 		err := s.database.Model(&models.User{}).
 			Where("username = ?", req.Username).
