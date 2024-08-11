@@ -1,7 +1,7 @@
 package dto
 
 type GetOtpRequest struct {
-	MobileNumber string `json:"mobileNumber" binding:"required,mobile,min=11,max=11"`
+	MobileNumber string `json:"mobileNumber" binding:"required,min=11,max=11"`
 }
 type TokenDetail struct {
 	AccessToken            string `json:"accessToken"`
@@ -19,7 +19,7 @@ type RegisterUserByUsername struct {
 }
 
 type RegisterLoginByMobileRequest struct {
-	MobileNumber string `json:"mobileNumber" binding:"required,mobile,min=11,max=11"`
+	MobileNumber string `json:"mobileNumber" binding:"required,min=11,max=11"`
 	Otp          string `json:"otp" binding:"required,min=6,max=6"`
 }
 

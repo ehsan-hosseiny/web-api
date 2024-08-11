@@ -25,10 +25,11 @@ func NewUserService(cfg *config.Config) *UserSevice {
 	database := db.GetDb()
 	logger := logging.NewLogger(cfg)
 	return &UserSevice{
-		cfg:       cfg,
-		database:  database,
-		logger:    logger,
-		otpSevice: NewOtpService(cfg),
+		cfg:          cfg,
+		database:     database,
+		logger:       logger,
+		otpSevice:    NewOtpService(cfg),
+		tokenService: NewTokenService(cfg),
 	}
 }
 
@@ -86,35 +87,33 @@ func (s *UserSevice) RegisterByUsername(req *dto.RegisterUserByUsername) error {
 
 func (s *UserSevice) LoginByUserName(req *dto.LoginByUsernameRequest) (*dto.TokenDetail, error) {
 	var user models.User
-		err := s.database.Model(&models.User{}).
-			Where("username = ?", req.Username).
-			Preload("UserRoles", func(tx *gorm.DB) *gorm.DB {
-				return tx.Preload("Role")
-			}).
-			Find(&user).Error
-		if err != nil {
-			return nil, err
-		}
+	err := s.database.Model(&models.User{}).
+		Where("username = ?", req.Username).
+		Preload("UserRoles", func(tx *gorm.DB) *gorm.DB {
+			return tx.Preload("Role")
+		}).
+		Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
 
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(req.Password))
-		if err != nil {
-			return nil, err
-		}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		return nil, err
+	}
 
-
-		tdto := tokenDto{UserId: user.Id, FirstName: user.FirstName, LastName: user.LastName,
-			Email: user.Email, MobileNumber: user.MobileNumber}
-		if len(*user.UserRoles) > 0 {
-			for _, userRole := range *user.UserRoles {
-				tdto.Roles = append(tdto.Roles, userRole.Role.Name)
-			}
+	tdto := tokenDto{UserId: user.Id, FirstName: user.FirstName, LastName: user.LastName,
+		Email: user.Email, MobileNumber: user.MobileNumber}
+	if len(*user.UserRoles) > 0 {
+		for _, userRole := range *user.UserRoles {
+			tdto.Roles = append(tdto.Roles, userRole.Role.Name)
 		}
-		token, err := s.tokenService.GenerateToken(&tdto)
-		if err != nil {
-			return nil, err
-		}
-		return token, nil
-
+	}
+	token, err := s.tokenService.GenerateToken(&tdto)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 
 }
 
