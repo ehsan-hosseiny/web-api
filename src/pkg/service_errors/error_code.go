@@ -4,6 +4,9 @@ const (
 	// TOKEN
 	UnExpectedError = "Expected error"
 	ClaimNotFound = "Claim not found"
+	TokenRequired = "token required"
+	TokenExpired = "token expired"
+	TokenInvalid = "token invalid"
 
 	// OTP
 	OtpExists = "Otp exists"

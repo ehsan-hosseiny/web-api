@@ -18,7 +18,7 @@ func InitServer(cfg *config.Config) {
 	RegisterSwagger(r, cfg)
 	RegisterRoutes(r, cfg)
 
-	r.Use(gin.Logger(), gin.Recovery())
+	r.Use(gin.Logger(), gin.CustomRecovery(middlewares.ErrorHandler))
 	r.Use(middlewares.DefaultStructuredLogger(cfg))
 	r.Use(middlewares.Cors(cfg))
 
