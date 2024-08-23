@@ -209,13 +209,13 @@ func (s *UserSevice) RegisterLoginByMobileNumber(req *dto.RegisterLoginByMobileR
 
 }
 
-func (s *UserSevice) SendOtp(req *dto.GetOtpRequest) error {
+func (s *UserSevice) SendOtp(req *dto.GetOtpRequest) (string, error) {
 	otp := common.GenerateOtp()
 	err := s.otpSevice.SetOtp(req.MobileNumber, otp)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return otp, nil
 }
 
 func (s *UserSevice) existsByEmail(email string) (bool, error) {

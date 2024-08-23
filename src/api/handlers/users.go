@@ -125,13 +125,13 @@ func (h *UsersHandler) SendOtp(c *gin.Context) {
 			helper.GenerateBaseResponseWithValidationError(nil, false, -1, err))
 		return
 	}
-	err = h.service.SendOtp(req)
+	otp, err := h.service.SendOtp(req)
 	if err != nil {
 		c.AbortWithStatusJSON(helper.TranslateErrorToStatusCode(err),
 			helper.GenerateBaseResponseWithError(nil, false, -1, err))
 		return
 	}
 	// Call Internal SMS Service
-	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(nil, true, 0))
+	c.JSON(http.StatusCreated, helper.GenerateBaseResponse(otp, true, 0))
 
 }
