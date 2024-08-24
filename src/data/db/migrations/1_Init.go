@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const countStarExp = "count(*)"
+
 var logger = logging.NewLogger(config.GetConfig())
 
 func Up_1() {
@@ -17,6 +19,7 @@ func Up_1() {
 
 	CreateTable(database)
 	CreateDefaultInformation(database)
+	createCountry(database)
 }
 
 func CreateTable(database *gorm.DB) {
@@ -53,7 +56,6 @@ func CreateDefaultInformation(database *gorm.DB) {
 	defaultRole := models.Role{Name: constants.DefaultRoleName}
 	createRoleIfNotExists(database, &defaultRole)
 
-	
 	u := models.User{Username: constants.DefaultUserName, FirstName: "Test", LastName: "Test",
 		MobileNumber: "09111112222", Email: "admin@admin.com"}
 	pass := "12345678"
@@ -87,6 +89,51 @@ func createAdminUserIfNotExists(database *gorm.DB, u *models.User, roleId int) {
 		database.Create(u)
 		ur := models.UserRole{UserId: u.Id, RoleId: roleId}
 		database.Create(&ur)
+	}
+}
+
+func createCountry(database *gorm.DB) {
+	count := 0
+	database.
+		Model(&models.Country{}).
+		Select(countStarExp).
+		Find(&count)
+	if count == 0 {
+		database.Create(&models.Country{Name: "Iran", Cities: []models.City{
+			{Name: "Tehran"},
+			{Name: "Isfahan"},
+			{Name: "Shiraz"},
+			{Name: "Chalus"},
+			{Name: "Ahwaz"},
+		}})
+		database.Create(&models.Country{Name: "USA", Cities: []models.City{
+			{Name: "New York"},
+			{Name: "Washington"},
+		}})
+		database.Create(&models.Country{Name: "Germany", Cities: []models.City{
+			{Name: "Berlin"},
+			{Name: "Munich"},
+		}})
+		database.Create(&models.Country{Name: "China", Cities: []models.City{
+			{Name: "Beijing"},
+			{Name: "Shanghai"},
+		}})
+		database.Create(&models.Country{Name: "Italy", Cities: []models.City{
+			{Name: "Roma"},
+			{Name: "Turin"},
+		}})
+		database.Create(&models.Country{Name: "France", Cities: []models.City{
+			{Name: "Paris"},
+			{Name: "Lyon"},
+		}})
+		database.Create(&models.Country{Name: "Japan", Cities: []models.City{
+			{Name: "Tokyo"},
+			{Name: "Kyoto"},
+		}})
+		database.Create(&models.Country{Name: "South Korea", Cities: []models.City{
+			{Name: "Seoul"},
+			{Name: "Ulsan"},
+		}})
 	}
 }
 
