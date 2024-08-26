@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/ehsan-hosseiny/golang-web-api/config"
 	"github.com/ehsan-hosseiny/golang-web-api/constants"
 	"github.com/ehsan-hosseiny/golang-web-api/data/db"
+	"github.com/ehsan-hosseiny/golang-web-api/data/models"
 	"github.com/ehsan-hosseiny/golang-web-api/pkg/logging"
 	"github.com/ehsan-hosseiny/golang-web-api/pkg/service_errors"
 	"gorm.io/gorm"
@@ -48,20 +50,26 @@ func (s *BaseService[T, Tc, Tu, Tr]) Create(ctx context.Context, req *Tc) (*Tr, 
 		return nil, err
 	}
 	tx.Commit()
-	return common.TypeConverter[Tr](model)
+	bm, _ := common.TypeConverter[models.BaseModel](model)
+	return s.GetById(ctx, bm.Id)
+
 }
 
 func (s *BaseService[T, Tc, Tu, Tr]) Update(ctx context.Context, id int, req *Tu) (*Tr, error) {
 
 	updateMap, _ := common.TypeConverter[map[string]interface{}](req)
-	(*updateMap)["modified_by"] = &sql.NullInt64{Int64: int64(ctx.Value(constants.UserIdKey).(float64)), Valid: true}
-	(*updateMap)["modified_at"] = sql.NullTime{Valid: true, Time: time.Now().UTC()}
+	snakeMap := map[string]interface{}{}
+	for k, v := range *updateMap {
+		snakeMap[common.ToSnakeCase(k)] = v
+	}
+	snakeMap["modified_by"] = &sql.NullInt64{Int64: int64(ctx.Value(constants.UserIdKey).(float64)), Valid: true}
+	snakeMap["modified_at"] = sql.NullTime{Valid: true, Time: time.Now().UTC()}
 
 	model := new(T)
 	tx := s.Database.WithContext(ctx).Begin()
 	if err := tx.Model(model).
 		Where("id = ? and deleted_by is null", id).
-		Updates(*updateMap).
+		Updates(snakeMap).
 		Error; err != nil {
 		tx.Rollback()
 		s.Logger.Error(logging.Postgres, logging.Update, err.Error(), nil)
@@ -80,9 +88,6 @@ func (s *BaseService[T, Tc, Tu, Tr]) Delete(ctx context.Context, id int) error {
 		"deleted_by": &sql.NullInt64{Int64: int64(ctx.Value(constants.UserIdKey).(float64)), Valid: true},
 		"deleted_at": sql.NullTime{Valid: true, Time: time.Now().UTC()},
 	}
-
-	deleteMap["modified_by"] = &sql.NullInt64{Int64: int64(ctx.Value(constants.UserIdKey).(float64)), Valid: true}
-	deleteMap["modified_at"] = sql.NullTime{Valid: true, Time: time.Now().UTC()}
 
 	if ctx.Value(constants.UserIdKey) == nil {
 		return &service_errors.ServiceError{EndUserMessage: service_errors.PermissionDenied}
@@ -113,8 +118,60 @@ func (s *BaseService[T, Tc, Tu, Tr]) GetById(ctx context.Context, id int) (*Tr, 
 
 }
 
-// Paginate
+func (s *BaseService[T, Tc, Tu, Tr]) GetByFilter(ctx context.Context, req *dto.PaginationInputWithFilter) (*dto.PagedList[Tr], error) {
+	return Paginate[T,Tr](req,s.Preloads,s.Database)
 
+}
+
+func NewPagedList[T any](items *[]T, count int64, pageNumber int, pageSize int64) *dto.PagedList[T] {
+	pl := &dto.PagedList[T]{
+		PageNumber: pageNumber,
+		TotalRows:  count,
+		Items:      items,
+	}
+	pl.TotalPages = int(math.Ceil(float64(count) / float64(pageSize)))
+	pl.HasNextPage = pl.PageNumber < pl.TotalPages
+	pl.HasPreviousPage = pl.PageNumber > 1
+
+	return pl
+}
+
+// Paginate
+func Paginate[T any, Tr any](pagination *dto.PaginationInputWithFilter, preloads []preload, db *gorm.DB) (*dto.PagedList[Tr], error) {
+	model := new(T)
+	var items *[]T
+	var rItems *[]Tr
+	db = Preload(db, preloads)
+	query := getQuery[T](&pagination.DynamicFilter)
+	sort := getSort[T](&pagination.DynamicFilter)
+
+	var totalRows int64 = 0
+
+	db.
+		Model(model).
+		Where(query).
+		Count(&totalRows)
+
+	err := db.
+		Where(query).
+		Offset(pagination.GetOffset()).
+		Limit(pagination.GetPageSize()).
+		Order(sort).
+		Find(&items).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+	rItems, err = common.TypeConverter[[]Tr](items)
+	if err != nil {
+		return nil, err
+	}
+	return NewPagedList(rItems, totalRows, pagination.PageNumber, int64(pagination.PageSize)), err
+
+}
+
+// Get Query
 func getQuery[T any](filter *dto.DynamicFilter) string {
 	t := new(T)
 	typeT := reflect.TypeOf(*t)
