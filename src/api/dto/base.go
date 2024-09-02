@@ -11,7 +11,8 @@ type CountryResponse struct {
 }
 
 type CreateUpdateCityRequest struct {
-	Name string `json:"name" binding:"required,alpha,min=3,max=20"`
+	Name      string `json:"name" binding:"required,alpha,min=3,max=20"`
+	CountryId int    `json:"countryId"`
 }
 
 type CityResponse struct {
