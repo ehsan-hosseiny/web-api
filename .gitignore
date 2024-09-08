@@ -1,2 +1,5 @@
 # Ignore logs directory
 logs/
+
+__debug_bin
+*/cmd/uploads

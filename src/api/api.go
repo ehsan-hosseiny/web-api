@@ -47,15 +47,27 @@ func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 		// Test
 		health := v1.Group("/health")
 		test_router := v1.Group("/test")
+
+		// User
 		users := v1.Group("/users")
+		
+		// Base
 		countries := v1.Group("/countries", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
 		cities := v1.Group("/cities", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
+		files := v1.Group("/files", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
 
+
+		// Test
 		routers.Health(health)
 		routers.TestRouter(test_router)
+
+		// User
 		routers.User(users, cfg)
+
+		// Base
 		routers.Country(countries, cfg)
 		routers.City(cities, cfg)
+		routers.File(files, cfg)
 
 	}
 

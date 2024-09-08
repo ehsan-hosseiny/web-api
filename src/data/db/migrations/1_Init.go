@@ -30,12 +30,14 @@ func CreateTable(database *gorm.DB) {
 	user := models.User{}
 	role := models.Role{}
 	userRole := models.UserRole{}
+	file := models.File{}
 
 	tables = addNewTable(database, country, tables)
 	tables = addNewTable(database, city, tables)
 	tables = addNewTable(database, user, tables)
 	tables = addNewTable(database, role, tables)
 	tables = addNewTable(database, userRole, tables)
+	tables = addNewTable(database, file, tables)
 
 	database.Migrator().CreateTable(tables...)
 	logger.Info(logging.Postgres, logging.Migration, "tables created", nil)
