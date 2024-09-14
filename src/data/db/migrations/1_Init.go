@@ -17,39 +17,45 @@ var logger = logging.NewLogger(config.GetConfig())
 func Up_1() {
 	database := db.GetDb()
 
-	CreateTable(database)
+	createTables(database)
 	CreateDefaultInformation(database)
+	createDefaultUserInformation(database)
 	createCountry(database)
 	createPropertyCategory(database)
+	createCarType(database)
+	createGearbox(database)
 }
 
-func CreateTable(database *gorm.DB) {
+func createTables(database *gorm.DB) {
 	tables := []interface{}{}
-
 	// Basic
-	country := models.Country{}
-	city := models.City{}
-	file := models.File{}
-
+	tables = addNewTable(database, models.Country{}, tables)
+	tables = addNewTable(database, models.City{}, tables)
+	tables = addNewTable(database, models.File{}, tables)
+	tables = addNewTable(database, models.PersianYear{}, tables)
 	// Property
-	propertyCategory := models.PropertyCategory{}
-	property := models.Property{}
-
+	tables = addNewTable(database, models.PropertyCategory{}, tables)
+	tables = addNewTable(database, models.Property{}, tables)
 	// User
-	user := models.User{}
-	role := models.Role{}
-	userRole := models.UserRole{}
-
-	tables = addNewTable(database, country, tables)
-	tables = addNewTable(database, city, tables)
-	tables = addNewTable(database, user, tables)
-	tables = addNewTable(database, role, tables)
-	tables = addNewTable(database, userRole, tables)
-	tables = addNewTable(database, file, tables)
-	tables = addNewTable(database, propertyCategory, tables)
-	tables = addNewTable(database, property, tables)
-
-	database.Migrator().CreateTable(tables...)
+	tables = addNewTable(database, models.User{}, tables)
+	tables = addNewTable(database, models.Role{}, tables)
+	tables = addNewTable(database, models.UserRole{}, tables)
+	// Car
+	tables = addNewTable(database, models.Company{}, tables)
+	tables = addNewTable(database, models.Gearbox{}, tables)
+	tables = addNewTable(database, models.Color{}, tables)
+	tables = addNewTable(database, models.CarType{}, tables)
+	tables = addNewTable(database, models.CarModel{}, tables)
+	tables = addNewTable(database, models.CarModelColor{}, tables)
+	tables = addNewTable(database, models.CarModelYear{}, tables)
+	tables = addNewTable(database, models.CarModelImage{}, tables)
+	tables = addNewTable(database, models.CarModelPriceHistory{}, tables)
+	tables = addNewTable(database, models.CarModelProperty{}, tables)
+	tables = addNewTable(database, models.CarModelComment{}, tables)
+	err := database.Migrator().CreateTable(tables...)
+	if err != nil {
+		logger.Error(logging.Postgres, logging.Migration, err.Error(), nil)
+	}
 	logger.Info(logging.Postgres, logging.Migration, "tables created", nil)
 }
 
@@ -76,6 +82,19 @@ func CreateDefaultInformation(database *gorm.DB) {
 
 	createAdminUserIfNotExists(database, &u, adminRole.Id)
 
+}
+
+func createDefaultUserInformation(database *gorm.DB) {
+	adminRole := models.Role{Name: constants.AdminRoleName}
+	createRoleIfNotExists(database, &adminRole)
+	defaultRole := models.Role{Name: constants.DefaultRoleName}
+	createRoleIfNotExists(database, &defaultRole)
+	u := models.User{Username: constants.DefaultUserName, FirstName: "Test", LastName: "Test",
+		MobileNumber: "09111112222", Email: "admin@admin.com"}
+	pass := "12345678"
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	u.Password = string(hashedPassword)
+	createAdminUserIfNotExists(database, &u, adminRole.Id)
 }
 
 func createRoleIfNotExists(database *gorm.DB, r *models.Role) {
@@ -108,7 +127,7 @@ func createCountry(database *gorm.DB) {
 	count := 0
 	database.
 		Model(&models.Country{}).
-		Select(countStarExp).
+		Select("count(*)").
 		Find(&count)
 	if count == 0 {
 		database.Create(&models.Country{Name: "Iran", Cities: []models.City{
@@ -117,34 +136,58 @@ func createCountry(database *gorm.DB) {
 			{Name: "Shiraz"},
 			{Name: "Chalus"},
 			{Name: "Ahwaz"},
+		}, Companies: []models.Company{
+			{Name: "Saipa"},
+			{Name: "Iran khodro"},
 		}})
 		database.Create(&models.Country{Name: "USA", Cities: []models.City{
 			{Name: "New York"},
 			{Name: "Washington"},
+		}, Companies: []models.Company{
+			{Name: "Tesla"},
+			{Name: "Jeep"},
 		}})
 		database.Create(&models.Country{Name: "Germany", Cities: []models.City{
 			{Name: "Berlin"},
 			{Name: "Munich"},
+		}, Companies: []models.Company{
+			{Name: "Opel"},
+			{Name: "Benz"},
 		}})
 		database.Create(&models.Country{Name: "China", Cities: []models.City{
 			{Name: "Beijing"},
 			{Name: "Shanghai"},
+		}, Companies: []models.Company{
+			{Name: "Chery"},
+			{Name: "Geely"},
 		}})
 		database.Create(&models.Country{Name: "Italy", Cities: []models.City{
 			{Name: "Roma"},
 			{Name: "Turin"},
+		}, Companies: []models.Company{
+			{Name: "Ferrari"},
+			{Name: "Fiat"},
 		}})
 		database.Create(&models.Country{Name: "France", Cities: []models.City{
 			{Name: "Paris"},
 			{Name: "Lyon"},
+		}, Companies: []models.Company{
+			{Name: "Renault"},
+			{Name: "Bugatti"},
 		}})
 		database.Create(&models.Country{Name: "Japan", Cities: []models.City{
 			{Name: "Tokyo"},
 			{Name: "Kyoto"},
+		}, Companies: []models.Company{
+			{Name: "Toyota"},
+			{Name: "Honda"},
 		}})
 		database.Create(&models.Country{Name: "South Korea", Cities: []models.City{
 			{Name: "Seoul"},
 			{Name: "Ulsan"},
+		}, Companies: []models.Company{
+			{Name: "Kia"},
+			{Name: "Hyundai"},
 		}})
 	}
 }
@@ -242,6 +285,33 @@ func createProperty(database *gorm.DB, cat string) {
 
 	for _, prop := range *props {
 		database.Create(&prop)
+	}
+}
+
+func createCarType(database *gorm.DB) {
+	count := 0
+	database.
+		Model(&models.CarType{}).
+		Select("count(*)").
+		Find(&count)
+	if count == 0 {
+		database.Create(&models.CarType{Name: "Crossover"})
+		database.Create(&models.CarType{Name: "Sedan"})
+		database.Create(&models.CarType{Name: "Sports"})
+		database.Create(&models.CarType{Name: "Coupe"})
+		database.Create(&models.CarType{Name: "Hatchback"})
+	}
+}
+
+func createGearbox(database *gorm.DB) {
+	count := 0
+	database.
+		Model(&models.Gearbox{}).
+		Select("count(*)").
+		Find(&count)
+	if count == 0 {
+		database.Create(&models.Gearbox{Name: "Manual"})
+		database.Create(&models.Gearbox{Name: "Automatic"})
 	}
 }
 
