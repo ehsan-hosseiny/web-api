@@ -67,6 +67,7 @@ func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 		// Car
 		CarTypes := v1.Group("/car-types", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
 		Gearbox := v1.Group("/gearboxes", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
+		carModels := v1.Group("/car-models", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
 
 		// Property
 		properties := v1.Group("/properties", middlewares.Authentication(cfg), middlewares.Authorization([]string{"admin"}))
@@ -92,6 +93,7 @@ func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 		// Car
 		routers.CarType(CarTypes, cfg)
 		routers.Gearbox(Gearbox, cfg)
+		routers.CarModel(carModels, cfg)
 
 	}
 
