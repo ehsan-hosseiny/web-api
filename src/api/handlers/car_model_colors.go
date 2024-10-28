@@ -4,6 +4,9 @@ import (
 	"github.com/ehsan-hosseiny/golang-web-api/config"
 	"github.com/ehsan-hosseiny/golang-web-api/services"
 	"github.com/gin-gonic/gin"
+	_ "github.com/ehsan-hosseiny/golang-web-api/api/dto"
+	_ "github.com/ehsan-hosseiny/golang-web-api/api/helper"
+	
 )
 
 type CarModelColorHandler struct {
