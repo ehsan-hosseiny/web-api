@@ -8,7 +8,10 @@ import (
 	"github.com/ehsan-hosseiny/golang-web-api/config"
 	"github.com/ehsan-hosseiny/golang-web-api/docs"
 	"github.com/ehsan-hosseiny/golang-web-api/pkg/logging"
+	"github.com/ehsan-hosseiny/golang-web-api/pkg/metrics"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -26,6 +29,7 @@ func InitServer(cfg *config.Config) {
 	r.Use(middlewares.Cors(cfg))
 
 	// api := r.Group("/api")
+	r.Use(middlewares.Prometheus())
 
 	// v1 := api.Group("/v1/")
 	// {
@@ -111,6 +115,7 @@ func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 		routers.CarModelProperty(carModelProperties, cfg)
 		routers.CarModelComment(carModelComments, cfg)
 
+		r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		r.Static("/static", "./uploads")
 
 	}
@@ -125,4 +130,16 @@ func RegisterSwagger(r *gin.Engine, cfg *config.Config) {
 	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%s", cfg.Server.Port)
 	docs.SwaggerInfo.Schemes = []string{"http"}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
+
+func RegisterPrometheus() {
+	err := prometheus.Register(metrics.DbCall)
+	if err != nil {
+		logger.Error(logging.Prometheus, logging.Startup, err.Error(), nil)
+	}
+
+	err = prometheus.Register(metrics.HttpDuration)
+	if err != nil {
+		logger.Error(logging.Prometheus, logging.Startup, err.Error(), nil)
+	}
 }
